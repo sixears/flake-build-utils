@@ -30,7 +30,8 @@ rec {
             pickGHC   = opts.ghc or (p: p.ghcHEAD); # choose HEAD if no opts.ghc
           in
             {
-              haskellPackages = traceGHCs pickGHC prev.haskell.packages;
+              # uncomment this to see the GHCs available
+              haskellPackages = /* traceGHCs */ pickGHC prev.haskell.packages;
             };
         nixpkgs = import nixpkgs_ { system = system;
                                     overlays = [ chooseGHC ];
@@ -42,7 +43,8 @@ rec {
             ghcDeriv =  nixpkgs.haskellPackages.ghc;
             traceGHC = trace2  { "using ghc" = builtins.toString ghcDeriv; };
           in
-            traceGHC nixpkgs.haskellPackages;
+            # uncomment this to see the GHC in use
+            /* traceGHC */ nixpkgs.haskellPackages;
 
         p = hPackage system nixpkgs "base0t" self opts;
       in
