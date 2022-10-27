@@ -16,7 +16,7 @@ rec {
                                           (unbreak haskellPackages);
       d = (pcks system (opts.deps or {})) // unbroken;
     in
-      builtins.trace d (haskellPackages.callCabal2nix name self d);
+      haskellPackages.callCabal2nix name self d;
 
   hOutputs = self: nixpkgs_: packageName: opts:
     flake-utils.lib.eachDefaultSystem (system:
@@ -46,23 +46,23 @@ rec {
 
         p = hPackage system nixpkgs "base0t" self opts;
       in
-    {
-      packages.${packageName} = p;
-      defaultPackage          = p;
+        {
+          packages.${packageName} = p;
+          defaultPackage          = p;
 
-      devShell = haskellPackages.shellFor {
-        packages = pkgs: [ self.packages.${system}.${packageName}]; # [ p ]
-        buildInputs =
-          with haskellPackages;
-          [
-            haskellPackages.haskell-language-server # you must build it with
-                                                    # your ghc to work
-            ghcid
-            cabal-install
-          ];
-        inputsFrom = builtins.attrValues self.packages.${system}; # [ p ];
-      };
-    }
+          devShell = haskellPackages.shellFor {
+            packages = pkgs: [ self.packages.${system}.${packageName}]; # [ p ]
+            buildInputs =
+              with haskellPackages;
+              [
+                haskellPackages.haskell-language-server # you must build it with
+                                                        # your ghc to work
+                ghcid
+                cabal-install
+              ];
+            inputsFrom = builtins.attrValues self.packages.${system}; # [ p ];
+          };
+        }
     );
 
 }
