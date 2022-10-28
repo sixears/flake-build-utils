@@ -27,10 +27,10 @@ rec {
             ghcNames  = with builtins; filter (x: "ghc" == substring 0 3 x)
                                               (attrNames prev.haskell.packages);
             traceGHCs = trace2 { "available haskell packages" = ghcNames; };
-            pickGHC   = opts.ghc or (p: p.ghcHEAD); # choose HEAD if no opts.ghc
+            pickGHC   = opts.ghc or (p: p.ghcHEAD); ## choose HEAD if no opts.ghc
           in
             {
-              # uncomment this to see the GHCs available
+              ## uncomment this to see the GHCs available
               haskellPackages = /* traceGHCs */ pickGHC prev.haskell.packages;
             };
         nixpkgs = import nixpkgs_ { system = system;
@@ -43,7 +43,7 @@ rec {
             ghcDeriv =  nixpkgs.haskellPackages.ghc;
             traceGHC = trace2  { "using ghc" = builtins.toString ghcDeriv; };
           in
-            # uncomment this to see the GHC in use
+            ## uncomment this to see the GHC in use
             /* traceGHC */ nixpkgs.haskellPackages;
 
         p = hPackage system nixpkgs "base0t" self opts;
@@ -52,18 +52,25 @@ rec {
           packages.${packageName} = p;
           defaultPackage          = p;
 
-          devShell = haskellPackages.shellFor {
-            packages = pkgs: [ self.packages.${system}.${packageName}]; # [ p ]
-            buildInputs =
-              with haskellPackages;
-              [
-                haskellPackages.haskell-language-server # you must build it with
-                                                        # your ghc to work
-                ghcid
-                cabal-install
-              ];
-            inputsFrom = builtins.attrValues self.packages.${system}; # [ p ];
-          };
+          devShell =
+            haskellPackages.shellFor {
+              ## This brings in all the dependencies of p, so the shell is
+              ## useful
+              packages = pkgs: [ p ]; # [ self.packages.${system}.${packageName}]; # [ p ]
+              buildInputs =
+                with haskellPackages;
+                [
+                  haskellPackages.haskell-language-server ## you must build it with
+                                                          ## your ghc to work
+                  ghcid
+                  cabal-install
+                ];
+              ## This implicitly includes the target package itself; thus, with
+              ## this, you cannot enter a `nix develop` shell unless the target
+              ## itself builds - which is often when you most need to get into
+              ## the shell.
+              # inputsFrom = builtins.attrValues self.packages.${system}; # [ p ];
+            };
         }
     );
 
