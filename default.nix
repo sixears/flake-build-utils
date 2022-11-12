@@ -15,7 +15,7 @@ rec {
       d = (pcks system (opts.deps or {})) // unbroken;
     in
       (haskellPackages.callCabal2nix name self d).overrideAttrs(
-        opts.overrideAttrs or {}
+        (opts.overrideAttrs or (_: _: {})) pkgs
       );
 
   hOutputs = self: nixpkgs_: packageName: opts:

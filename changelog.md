@@ -1,3 +1,7 @@
+1.0.0.9 2022-11-12
+==================
+- fix default value for overrideAttrs, for real this time
+
 1.0.0.8 2022-11-12
 ==================
 - fix default value for overrideAttrs
