@@ -1,3 +1,7 @@
+1.0.0.7 2022-11-12
+==================
+- add support for overrideAttrs
+
 1.0.0.6 2022-11-03
 ==================
 - remove redundant dependency on base0

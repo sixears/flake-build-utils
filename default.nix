@@ -6,8 +6,6 @@ rec {
 
   hPackage = system: pkgs: name: self: opts:
     let
-      # haskellPackages = pkgs.legacyPackages.${system}.haskellPackages;
-      # haskellLib      = pkgs.legacyPackages.${system}.haskell.lib;
       haskellPackages = pkgs.haskellPackages;
       haskellLib      = pkgs.haskell.lib;
       default_unbreak = _: {};
@@ -16,7 +14,9 @@ rec {
                                           (unbreak haskellPackages);
       d = (pcks system (opts.deps or {})) // unbroken;
     in
-      haskellPackages.callCabal2nix name self d;
+      (haskellPackages.callCabal2nix name self d).overrideAttrs(
+        opts.overrideAttrs ? {}
+      );
 
   hOutputs = self: nixpkgs_: packageName: opts:
     flake-utils.lib.eachDefaultSystem (system:
@@ -27,7 +27,7 @@ rec {
             ghcNames  = with builtins; filter (x: "ghc" == substring 0 3 x)
                                               (attrNames prev.haskell.packages);
             traceGHCs = trace2 { "available haskell packages" = ghcNames; };
-            pickGHC   = opts.ghc or (p: p.ghcHEAD); ## choose HEAD if no opts.ghc
+            pickGHC   = opts.ghc or (p: p.ghcHEAD); ## no opts.ghc =>choose HEAD
           in
             {
               ## uncomment this to see the GHCs available
@@ -37,7 +37,6 @@ rec {
                                     overlays = [ chooseGHC ];
                                   };
 
-        # haskellPackages = nixpkgs.legacyPackages.${system}.haskellPackages;
         haskellPackages =
           let
             ghcDeriv =  nixpkgs.haskellPackages.ghc;
@@ -56,12 +55,13 @@ rec {
             haskellPackages.shellFor {
               ## This brings in all the dependencies of p, so the shell is
               ## useful
-              packages = pkgs: [ p ]; # [ self.packages.${system}.${packageName}]; # [ p ]
+              packages = pkgs: [ p ];
               buildInputs =
                 with haskellPackages;
                 [
-                  haskellPackages.haskell-language-server ## you must build it with
-                                                          ## your ghc to work
+                  haskellPackages.haskell-language-server ## you must build it
+                                                          ## with your ghc to
+                                                          ## work
                   ghcid
                   cabal-install
                 ];
@@ -69,7 +69,7 @@ rec {
               ## this, you cannot enter a `nix develop` shell unless the target
               ## itself builds - which is often when you most need to get into
               ## the shell.
-              # inputsFrom = builtins.attrValues self.packages.${system}; # [ p ];
+              # inputsFrom = builtins.attrValues self.packages.${system}; # [p];
             };
         }
     );
