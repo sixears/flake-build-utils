@@ -1,3 +1,7 @@
+1.0.0.10 2022-11-13
+===================
+- fix "base0t" -> packageName error in hOutputs
+
 1.0.0.9 2022-11-12
 ==================
 - fix default value for overrideAttrs, for real this time

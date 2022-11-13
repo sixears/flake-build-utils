@@ -45,7 +45,7 @@ rec {
             ## uncomment this to see the GHC in use
             /* traceGHC */ nixpkgs.haskellPackages;
 
-        p = hPackage system nixpkgs "base0t" self opts;
+        p = hPackage system nixpkgs packageName self opts;
       in
         {
           packages.${packageName} = p;
