@@ -1,20 +1,36 @@
 { flake-utils }:
 
 rec {
+  # pick the default package from a flake import
+  flake-def-pkg = system: p: p.defaultPackage.${system};
+
+  # xs is an attrSet of flake packages by name; `pcks` maps them
+  # to their derivations (of their default packages) (returning
+  # an attrSet from name to derivation)
   pcks = system: xs:
-    builtins.mapAttrs (pname: p: p.defaultPackage.${system}) xs;
+#    builtins.mapAttrs (pname: p: p.defaultPackage.${system}) xs;
+    builtins.mapAttrs (_: flake-def-pkg system) xs;
 
   hPackage = system: pkgs: name: self: opts:
     let
       haskellPackages = pkgs.haskellPackages;
       haskellLib      = pkgs.haskell.lib;
+      # don't unbreak any packages
       default_unbreak = _: {};
+      # opts.unbreak, if defined, should be a unary function from an attrSet of
+      # haskellpackages to an attrSet of packages that should be unbroken
       unbreak         = opts.unbreak or default_unbreak;
+      # (unbreak haskellPackages) is an attrSet of packages to unbreak; e.g.,
+      # { "text-format" = haskellPackages.text-format; }
+      # thus unbroken does the deed, leaving us with (e.g.,) an attrSet of
+      # packages with the unbroken tag removed
       unbroken        = builtins.mapAttrs (_: p: haskellLib.markUnbroken p)
                                           (unbreak haskellPackages);
-      d = (pcks system (opts.deps or {})) // unbroken;
+      d = ((pcks system (opts.deps or {})) // unbroken);
     in
-      (haskellPackages.callCabal2nix name self d).overrideAttrs(
+      if opts ? callPackage
+      then (haskellPackages.callPackage opts.callPackage { inherit system; })
+      else (haskellPackages.callCabal2nix name self d).overrideAttrs(
         (opts.overrideAttrs or (_: _: {})) pkgs
       );
 
@@ -34,7 +50,7 @@ rec {
               haskellPackages = /* traceGHCs */ pickGHC prev.haskell.packages;
             };
         nixpkgs = import nixpkgs_ { system = system;
-                                    overlays = [ chooseGHC ];
+                                   overlays = [ chooseGHC ];
                                   };
 
         haskellPackages =

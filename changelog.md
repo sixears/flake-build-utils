@@ -1,3 +1,7 @@
+1.0.0.11 2022-11-17
+===================
+- add support for for building a haskell derivation with callPackage
+
 1.0.0.10 2022-11-13
 ===================
 - fix "base0t" -> packageName error in hOutputs
