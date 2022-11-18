@@ -29,10 +29,13 @@ rec {
       d = ((pcks system (opts.deps or {})) // unbroken);
     in
       if opts ? callPackage
-      then (haskellPackages.callPackage opts.callPackage { inherit system; })
-      else (haskellPackages.callCabal2nix name self d).overrideAttrs(
-        (opts.overrideAttrs or (_: _: {})) pkgs
-      );
+      then (haskellPackages.callPackage opts.callPackage ({ inherit system; } // unbroken))
+      else # callCabal2nix uses IFD, which is slow and memory-hungry
+           # https://github.com/cdepillabout/cabal2nixWithoutIFD
+           pkgs.lib.trivial.warn "pkg ${name} is using callCabal2nix"
+             (haskellPackages.callCabal2nix name self d).overrideAttrs(
+               (opts.overrideAttrs or (_: _: {})) pkgs
+             );
 
   hOutputs = self: nixpkgs_: packageName: opts:
     flake-utils.lib.eachDefaultSystem (system:

@@ -1,3 +1,7 @@
+1.0.0.12 2022-11-18
+===================
+- add warning for use of callCabal2nix
+
 1.0.0.11 2022-11-17
 ===================
 - add support for for building a haskell derivation with callPackage
