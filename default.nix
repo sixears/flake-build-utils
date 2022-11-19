@@ -27,12 +27,13 @@ rec {
       unbroken        = builtins.mapAttrs (_: p: haskellLib.markUnbroken p)
                                           (unbreak haskellPackages);
       d = ((pcks system (opts.deps or {})) // unbroken);
+      mapPkg = map (flake-def-pkg system);
     in
       if opts ? callPackage
-      then (haskellPackages.callPackage opts.callPackage ({ inherit system; } // unbroken))
+      then (haskellPackages.callPackage opts.callPackage ({ inherit mapPkg system; } // unbroken))
       else # callCabal2nix uses IFD, which is slow and memory-hungry
            # https://github.com/cdepillabout/cabal2nixWithoutIFD
-           pkgs.lib.trivial.warn "pkg ${name} is using callCabal2nix"
+           # pkgs.lib.trivial.warn "pkg ${name} is using callCabal2nix"
              (haskellPackages.callCabal2nix name self d).overrideAttrs(
                (opts.overrideAttrs or (_: _: {})) pkgs
              );
